@@ -1,7 +1,12 @@
 ---
+import '../styles/tokens.css';
 import type { PublicRankingItem } from '../lib/api.js';
 
-/** Ticket FE-13 — component tĩnh (không TanStack Query, trang này không phải SPA — build-time render 1 lần). */
+/**
+ * Ticket FE-13 — component tĩnh (không TanStack Query, trang này không phải SPA — build-time render 1 lần).
+ * Ticket FE-14 — bọc trong 1 card (`radius-md`/`elevation-1`, Design System) thay vì bảng trần không viền
+ * ngoài; số liệu (`rank`/`current_rating`/`games_played`) bắt buộc `tabular-nums` (Data token — canh cột).
+ */
 export interface Props {
   items: PublicRankingItem[];
 }
@@ -9,52 +14,66 @@ export interface Props {
 const { items } = Astro.props;
 ---
 
-<table class="ranking-table">
-  <thead>
-    <tr>
-      <th>Hạng</th>
-      <th>Người chơi</th>
-      <th>Điểm</th>
-      <th>Số trận</th>
-    </tr>
-  </thead>
-  <tbody>
-    {
-      items.map((item) => (
-        <tr>
-          <td>{item.rank}</td>
-          <td>
-            {item.display_name}
-            {item.is_provisional && <span class="provisional">(provisional)</span>}
-          </td>
-          <td>{item.current_rating.toFixed(2)}</td>
-          <td>{item.games_played}</td>
-        </tr>
-      ))
-    }
-  </tbody>
-</table>
+<div class="ranking-card">
+  <table class="ranking-table">
+    <thead>
+      <tr>
+        <th>Hạng</th>
+        <th>Người chơi</th>
+        <th>Điểm</th>
+        <th>Số trận</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        items.map((item) => (
+          <tr>
+            <td class="num">{item.rank}</td>
+            <td>
+              {item.display_name}
+              {item.is_provisional && <span class="provisional">(provisional)</span>}
+            </td>
+            <td class="num">{item.current_rating.toFixed(2)}</td>
+            <td class="num">{item.games_played}</td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>
 
 <style>
+  .ranking-card {
+    background: var(--color-surface-200);
+    border-radius: var(--radius-md);
+    box-shadow: var(--elevation-1);
+    overflow: hidden;
+  }
   .ranking-table {
     width: 100%;
     border-collapse: collapse;
-    font-family: system-ui, sans-serif;
+    font-family: var(--font-body);
   }
   .ranking-table th,
   .ranking-table td {
     padding: 0.5rem 0.75rem;
     text-align: left;
-    border-bottom: 1px solid #e5e5e5;
+    border-bottom: 1px solid var(--color-border);
   }
   .ranking-table th {
     font-size: 0.8rem;
     text-transform: uppercase;
-    color: #6b6b6b;
+    color: var(--color-ink-muted);
+  }
+  .ranking-table tr:last-child td {
+    border-bottom: none;
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
   }
   .provisional {
     margin-left: 0.35rem;
     font-size: 0.75rem;
-    color: #a36a00;
+    color: var(--color-warning);
   }
 </style>

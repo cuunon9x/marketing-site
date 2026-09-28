@@ -1,0 +1,28 @@
+/**
+ * Ticket FE-14 — nguồn DUY NHẤT cho token màu/font/radius/elevation của apps/marketing-site, copy trực tiếp
+ * từ Design System artifact (https://claude.ai/artifact/EQZN8wPstWHxrZrzQu68zt), CÙNG tên biến `--color-*`
+ * đã dùng ở apps/frontend (`src/styles/globals.css`) — không đặt tên khác để giữ đúng "1 nguồn chân lý".
+ * Site này chưa cần dark mode (chỉ có 1 nhóm theme, không @media prefers-color-scheme).
+ *
+ * Đổi token: đổi ở Design System artifact TRƯỚC, sync file này cùng PR — không tự chế giá trị mới ở đây.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@800&family=Inter:wght@400;600;700&display=swap');
+
+:root {
+  --color-surface-100: #f6f8f6;
+  --color-surface-200: #ffffff;
+  --color-surface-300: #edf1ee;
+  --color-ink: #17211d;
+  --color-ink-muted: #5b6b65;
+  --color-border: #dce4df;
+  --color-brand-primary: #1b6b52;
+  --color-warning: #b8860b;
+
+  --font-display: 'Manrope', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+
+  --radius-md: 10px;
+  /* Giá trị lấy nguyên văn từ Design System artifact (tokens.json `elevation`) — không tự chế, cùng giá trị
+     đã dùng ở apps/frontend (tailwind.config.ts `boxShadow['elevation-1']`). */
+  --elevation-1: 0 1px 2px rgba(23, 33, 29, 0.06), 0 1px 1px rgba(23, 33, 29, 0.04);
+}

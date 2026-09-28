@@ -1,9 +1,12 @@
 ---
+import '../styles/tokens.css';
 import { listAllPublicClubs } from '../lib/api.js';
 
 /** Ticket FE-13 — trang chủ tối thiểu: danh sách link tới mọi club public (không nằm trong scope gốc của
  * ticket, nhưng cần thiết để có 1 trang gốc hợp lệ thay vì 404 mặc định của Astro, và giúp Googlebot có
- * điểm vào để discover mọi trang `/clubs/:slug` qua liên kết nội bộ, không chỉ qua sitemap.xml). */
+ * điểm vào để discover mọi trang `/clubs/:slug` qua liên kết nội bộ, không chỉ qua sitemap.xml).
+ * Ticket FE-14 — cùng token/font với `/clubs/:slug` (`tokens.css`), khung layout chung KHÔNG có branding
+ * riêng club nào ở trang này (không phải trang của 1 club cụ thể). */
 const clubs = await listAllPublicClubs();
 ---
 
@@ -16,7 +19,7 @@ const clubs = await listAllPublicClubs();
     <meta name="description" content="Danh sách câu lạc bộ pickleball/tennis/badminton/padel công khai trên Pickleheads." />
   </head>
   <body>
-    <h1>Câu lạc bộ trên Pickleheads</h1>
+    <h1 class="page-title">Câu lạc bộ trên Pickleheads</h1>
     <ul>
       {
         clubs.map((club) => (
@@ -31,9 +34,17 @@ const clubs = await listAllPublicClubs();
 
 <style>
   body {
-    font-family: system-ui, sans-serif;
+    font-family: var(--font-body);
+    color: var(--color-ink);
+    background: var(--color-surface-100);
     max-width: 640px;
     margin: 2rem auto;
     padding: 0 1rem;
+  }
+  .page-title {
+    font-family: var(--font-display);
+  }
+  a {
+    color: var(--color-brand-primary);
   }
 </style>

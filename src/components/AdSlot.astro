@@ -1,4 +1,6 @@
 ---
+import '../styles/tokens.css';
+
 /**
  * Ticket FE-13 — giữ layout đúng kích thước chuẩn IAB, CHƯA gắn AdSense thật (chỉ đặt chỗ). Khi gắn thật,
  * thay nội dung bên trong bằng snippet AdSense — không đổi kích thước/id đã đặt sẵn ở đây (SEO/CLS đã ổn
@@ -27,10 +29,10 @@ const size = variant === 'leaderboard' ? { width: 728, height: 90 } : { width: 3
     justify-content: center;
     margin: 0 auto;
     max-width: 100%;
-    background: #f1f1f1;
-    border: 1px dashed #c4c4c4;
-    color: #8a8a8a;
+    background: var(--color-surface-300);
+    border: 1px dashed var(--color-border);
+    color: var(--color-ink-muted);
     font-size: 0.75rem;
-    font-family: system-ui, sans-serif;
+    font-family: var(--font-body);
   }
 </style>

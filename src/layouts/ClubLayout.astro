@@ -1,9 +1,15 @@
 ---
+import '../styles/tokens.css';
+
 /**
  * Ticket FE-13 — header theo branding riêng của club (`logo_url`/`primary_color`, đã gate Pro/Premium ở
  * Backend — Ticket 41/B.4, trang này không tự quyết định lại). SEO: title/description động theo club,
  * OpenGraph image = `logo_url` khi có (club Free/chưa có branding thật thì bỏ qua `og:image`, KHÔNG tự chế
  * ảnh mặc định giả — không có asset OG mặc định nào được thiết kế cho ticket này).
+ *
+ * Ticket FE-14 — khung layout/typography theo Design System chung (`tokens.css`); `--club-accent` (branding
+ * RIÊNG từng club, `primary_color`) tiếp tục override `--color-brand-primary` — đây là 2 khái niệm khác
+ * nhau, không gộp: `--color-brand-primary` là neutral palette fallback khi club chưa có branding thật.
  */
 export interface Props {
   name: string;
@@ -23,7 +29,8 @@ const description = `Bảng xếp hạng ${sportType} công khai của câu lạ
 // để không dính lỗi nối chuỗi thiếu dấu `/` (VD "...marketing-siteclubs/...").
 const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
 const canonicalUrl = new URL(`${base}clubs/${slug}/`, Astro.site).toString();
-const accentColor = primaryColor ?? '#1d4ed8';
+// Ticket FE-14 — fallback ĐÚNG token `--color-brand-primary` (#1B6B52), KHÔNG còn hardcode `#1d4ed8` sai màu.
+const accentColor = primaryColor ?? 'var(--color-brand-primary)';
 ---
 
 <!doctype html>
@@ -55,20 +62,21 @@ const accentColor = primaryColor ?? '#1d4ed8';
 <style>
   body {
     margin: 0;
-    font-family: system-ui, sans-serif;
-    color: #1a1a1a;
-    background: #fafafa;
+    font-family: var(--font-body);
+    color: var(--color-ink);
+    background: var(--color-surface-100);
   }
   .club-header {
     display: flex;
     align-items: center;
     gap: 0.75rem;
     padding: 1.25rem 1rem;
-    background: var(--club-accent);
+    background: var(--club-accent, var(--color-brand-primary));
     color: #fff;
   }
   .club-header h1 {
     margin: 0;
+    font-family: var(--font-display);
     font-size: 1.25rem;
   }
   .club-logo {
