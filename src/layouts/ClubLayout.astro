@@ -1,0 +1,86 @@
+---
+/**
+ * Ticket FE-13 — header theo branding riêng của club (`logo_url`/`primary_color`, đã gate Pro/Premium ở
+ * Backend — Ticket 41/B.4, trang này không tự quyết định lại). SEO: title/description động theo club,
+ * OpenGraph image = `logo_url` khi có (club Free/chưa có branding thật thì bỏ qua `og:image`, KHÔNG tự chế
+ * ảnh mặc định giả — không có asset OG mặc định nào được thiết kế cho ticket này).
+ */
+export interface Props {
+  name: string;
+  sportType: string;
+  logoUrl: string | null;
+  primaryColor: string | null;
+  slug: string;
+}
+
+const { name, sportType, logoUrl, primaryColor, slug } = Astro.props;
+
+const title = `${name} — Bảng xếp hạng Pickleheads`;
+const description = `Bảng xếp hạng ${sportType} công khai của câu lạc bộ ${name} trên Pickleheads.`;
+// `Astro.site` KHÔNG gồm `base` (`base` là 1 config riêng) — phải tự nối để ra đúng URL public thật trên
+// GitHub Pages project-page (`https://cuunon9x.github.io/pickleheads-marketing-site/clubs/:slug/`).
+// `BASE_URL` không đảm bảo có `/` cuối (phụ thuộc cách khai báo `base` ở astro.config.mjs) — tự chuẩn hoá
+// để không dính lỗi nối chuỗi thiếu dấu `/` (VD "...marketing-siteclubs/...").
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+const canonicalUrl = new URL(`${base}clubs/${slug}/`, Astro.site).toString();
+const accentColor = primaryColor ?? '#1d4ed8';
+---
+
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    {logoUrl && <meta property="og:image" content={logoUrl} />}
+  </head>
+  <body style={`--club-accent: ${accentColor};`}>
+    <header class="club-header">
+      {logoUrl && <img src={logoUrl} alt={`Logo ${name}`} class="club-logo" />}
+      <h1>{name}</h1>
+    </header>
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>
+
+<style>
+  body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    color: #1a1a1a;
+    background: #fafafa;
+  }
+  .club-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.25rem 1rem;
+    background: var(--club-accent);
+    color: #fff;
+  }
+  .club-header h1 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+  .club-logo {
+    height: 40px;
+    width: 40px;
+    object-fit: contain;
+    border-radius: 6px;
+    background: #fff;
+  }
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 1rem;
+  }
+</style>

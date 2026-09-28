@@ -1,0 +1,15 @@
+# Build output
+dist/
+.astro/
+
+# Dependencies
+node_modules/
+
+# Env — secrets không bao giờ commit (CLAUDE.md mục 2.2). File này chỉ chứa base URL public của Backend API,
+# nhưng vẫn theo đúng convention chung: .env thật không commit, chỉ .env.example.
+.env
+.env.local
+.env.*.local
+
+*.log
+.DS_Store

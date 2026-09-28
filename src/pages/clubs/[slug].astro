@@ -1,0 +1,48 @@
+---
+import AdSlot from '../../components/AdSlot.astro';
+import RankingTable from '../../components/RankingTable.astro';
+import ClubLayout from '../../layouts/ClubLayout.astro';
+import { getClubMarketingPage, listAllPublicClubs } from '../../lib/api.js';
+
+/**
+ * Ticket FE-13 — build-time fetch (SSG), KHÔNG fetch runtime phía browser. `getStaticPaths()` liệt kê MỌI
+ * club `visibility=public` có slug (`listAllPublicClubs()`), rồi fetch chi tiết + ranking từng club qua
+ * `GET public/marketing/clubs/:slug` (Ticket BE-13) — 2 lần gọi API khác nhau vì listing chỉ trả field tối
+ * thiểu cho danh sách, không có ranking.
+ */
+export async function getStaticPaths() {
+  const clubs = await listAllPublicClubs();
+  return clubs.map((club) => ({ params: { slug: club.slug } }));
+}
+
+const { slug } = Astro.params;
+const club = await getClubMarketingPage(slug!);
+---
+
+<ClubLayout name={club.name} sportType={club.sport_type} logoUrl={club.logo_url} primaryColor={club.primary_color} slug={club.slug}>
+  <AdSlot variant="leaderboard" />
+
+  <div class="content-grid">
+    <section>
+      <h2>Bảng xếp hạng Overall</h2>
+      <RankingTable items={club.ranking.items} />
+    </section>
+    <aside>
+      <AdSlot variant="sidebar" />
+    </aside>
+  </div>
+</ClubLayout>
+
+<style>
+  .content-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  @media (min-width: 720px) {
+    .content-grid {
+      grid-template-columns: 1fr 300px;
+    }
+  }
+</style>

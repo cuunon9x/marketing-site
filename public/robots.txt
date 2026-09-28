@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://cuunon9x.github.io/pickleheads-marketing-site/sitemap-index.xml

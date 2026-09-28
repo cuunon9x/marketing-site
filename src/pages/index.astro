@@ -1,0 +1,39 @@
+---
+import { listAllPublicClubs } from '../lib/api.js';
+
+/** Ticket FE-13 — trang chủ tối thiểu: danh sách link tới mọi club public (không nằm trong scope gốc của
+ * ticket, nhưng cần thiết để có 1 trang gốc hợp lệ thay vì 404 mặc định của Astro, và giúp Googlebot có
+ * điểm vào để discover mọi trang `/clubs/:slug` qua liên kết nội bộ, không chỉ qua sitemap.xml). */
+const clubs = await listAllPublicClubs();
+---
+
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pickleheads — Bảng xếp hạng câu lạc bộ</title>
+    <meta name="description" content="Danh sách câu lạc bộ pickleball/tennis/badminton/padel công khai trên Pickleheads." />
+  </head>
+  <body>
+    <h1>Câu lạc bộ trên Pickleheads</h1>
+    <ul>
+      {
+        clubs.map((club) => (
+          <li>
+            <a href={`clubs/${club.slug}/`}>{club.name}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </body>
+</html>
+
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    max-width: 640px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+</style>

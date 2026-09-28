@@ -1,0 +1,60 @@
+---
+import type { PublicRankingItem } from '../lib/api.js';
+
+/** Ticket FE-13 — component tĩnh (không TanStack Query, trang này không phải SPA — build-time render 1 lần). */
+export interface Props {
+  items: PublicRankingItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<table class="ranking-table">
+  <thead>
+    <tr>
+      <th>Hạng</th>
+      <th>Người chơi</th>
+      <th>Điểm</th>
+      <th>Số trận</th>
+    </tr>
+  </thead>
+  <tbody>
+    {
+      items.map((item) => (
+        <tr>
+          <td>{item.rank}</td>
+          <td>
+            {item.display_name}
+            {item.is_provisional && <span class="provisional">(provisional)</span>}
+          </td>
+          <td>{item.current_rating.toFixed(2)}</td>
+          <td>{item.games_played}</td>
+        </tr>
+      ))
+    }
+  </tbody>
+</table>
+
+<style>
+  .ranking-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: system-ui, sans-serif;
+  }
+  .ranking-table th,
+  .ranking-table td {
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e5e5;
+  }
+  .ranking-table th {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #6b6b6b;
+  }
+  .provisional {
+    margin-left: 0.35rem;
+    font-size: 0.75rem;
+    color: #a36a00;
+  }
+</style>
