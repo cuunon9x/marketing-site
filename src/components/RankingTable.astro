@@ -9,6 +9,9 @@ import type { PublicRankingItem } from '../lib/api.js';
  * hiện icon huy chương lucide (`Medal`, path copy nguyên văn từ `lucide-react`, KHÔNG dùng emoji — theo rule
  * Design System đã chốt ở decisions-log.md "Icon UI = lucide-react, emoji CHỈ trong copy text thuần"); bảng
  * scroll-x dưới breakpoint `md` (768px, frontend.md) thay vì vỡ layout trên màn hình hẹp.
+ * Ticket FE-25 — bọc thêm 1 lớp "double-bezel" (`.ranking-shell` ngoài, `.ranking-card` trong với radius nhỏ
+ * hơn) theo Design System mục "Marketing surface — premium redesign" §4A; dữ liệu/markup bảng bên trong giữ
+ * nguyên hoàn toàn từ FE-24, không đổi.
  */
 export interface Props {
   items: PublicRankingItem[];
@@ -23,18 +26,19 @@ function initialOf(displayName: string): string {
 }
 ---
 
-<div class="ranking-card">
-  <div class="ranking-scroll">
-    <table class="ranking-table">
-      <thead>
-        <tr>
-          <th>Hạng</th>
-          <th>Người chơi</th>
-          <th>Điểm</th>
-          <th>Số trận</th>
-        </tr>
-      </thead>
-      <tbody>
+<div class="ranking-shell" data-reveal>
+  <div class="ranking-card">
+    <div class="ranking-scroll">
+      <table class="ranking-table">
+        <thead>
+          <tr>
+            <th>Hạng</th>
+            <th>Người chơi</th>
+            <th>Điểm</th>
+            <th>Số trận</th>
+          </tr>
+        </thead>
+        <tbody>
         {
           items.map((item) => (
             <tr>
@@ -82,16 +86,24 @@ function initialOf(displayName: string): string {
             </tr>
           ))
         }
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
 <style>
+  .ranking-shell {
+    padding: 6px;
+    background: var(--color-surface-300);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--elevation-1);
+  }
   .ranking-card {
     background: var(--color-surface-200);
-    border-radius: var(--radius-md);
-    box-shadow: var(--elevation-1);
+    border-radius: calc(var(--radius-lg) - 6px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
     overflow: hidden;
   }
   .ranking-scroll {

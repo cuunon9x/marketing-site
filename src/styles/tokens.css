@@ -16,13 +16,118 @@
   --color-ink-muted: #5b6b65;
   --color-border: #dce4df;
   --color-brand-primary: #1b6b52;
+  --color-brand-primary-ink: #ffffff;
   --color-warning: #b8860b;
 
   --font-display: 'Manrope', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
 
+  --space-2: 8px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
   --radius-md: 10px;
+  /* Ticket FE-25 — thêm 2 token radius cho double-bezel card (outer shell) và pill nav/button, cùng giá trị
+     Design System artifact (tokens.json `radius`), chưa cần ở FE-14/FE-24. */
+  --radius-lg: 16px;
+  --radius-full: 999px;
   /* Giá trị lấy nguyên văn từ Design System artifact (tokens.json `elevation`) — không tự chế, cùng giá trị
      đã dùng ở apps/frontend (tailwind.config.ts `boxShadow['elevation-1']`). */
   --elevation-1: 0 1px 2px rgba(23, 33, 29, 0.06), 0 1px 1px rgba(23, 33, 29, 0.04);
+  /* Ticket FE-25 — thêm elevation-2 + motion tokens (duration/ease), nguyên văn Design System artifact
+     (tokens.json `elevation`/`motion`), dùng cho hover-lift bento card và scroll-reveal (mục "Marketing
+     surface — premium redesign" — IntersectionObserver, KHÔNG GSAP). */
+  --elevation-2: 0 8px 24px rgba(23, 33, 29, 0.12), 0 2px 6px rgba(23, 33, 29, 0.06);
+  --duration-base: 200ms;
+  --duration-slow: 350ms;
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+}
+
+/**
+ * Ticket FE-25 — scroll-reveal dùng chung (homepage + club page): fade + translate-y qua IntersectionObserver
+ * (src/lib/scroll-reveal.ts), KHÔNG GSAP, KHÔNG scroll event listener (Design System mục "Marketing surface").
+ * CSS tự đảm bảo fallback tức thời dưới prefers-reduced-motion — không phụ thuộc JS phải check lại điều kiện
+ * này, đúng nguyên tắc "Motion" đã chốt: reduced-motion luôn thắng bất kể JS chạy trước hay sau.
+ */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity var(--duration-slow) var(--ease-out),
+    transform var(--duration-slow) var(--ease-out);
+}
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/**
+ * Ticket FE-25 — pill CTA dùng chung (hero + Action section homepage), "button-in-button" trailing icon
+ * (high-end-visual-design §4B), hover magnetic chỉ chạy dưới `prefers-reduced-motion: no-preference` —
+ * fallback màu nền vẫn đổi (feedback tối thiểu) kể cả khi tắt hiệu ứng.
+ */
+.btn-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.7rem 0.7rem 0.7rem 1.4rem;
+  border-radius: var(--radius-full);
+  border: none;
+  background: var(--color-brand-primary);
+  color: var(--color-brand-primary-ink);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--duration-base) var(--ease-standard);
+}
+.btn-pill:hover {
+  background-color: #17573f;
+}
+.btn-pill--inverted {
+  background: var(--color-surface-200);
+  color: var(--color-ink);
+}
+.btn-pill--inverted:hover {
+  background-color: var(--color-surface-300);
+}
+.btn-pill__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  width: 28px;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.18);
+}
+.btn-pill--inverted .btn-pill__icon {
+  background: var(--color-surface-300);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .btn-pill {
+    transition:
+      background-color var(--duration-base) var(--ease-standard),
+      transform var(--duration-base) var(--ease-standard);
+  }
+  .btn-pill .btn-pill__icon {
+    transition: transform var(--duration-base) var(--ease-standard);
+  }
+  .btn-pill:hover .btn-pill__icon {
+    transform: translate(2px, -2px);
+  }
+  .btn-pill:active {
+    transform: scale(0.98);
+  }
 }

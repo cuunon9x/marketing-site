@@ -1,0 +1,77 @@
+---
+/**
+ * Ticket FE-25 — nav dạng pill nhỏ ở top thay cho header phẳng cũ (Design System mục "Marketing surface" —
+ * double-bezel/pill-nav §4). Dùng chung homepage (brand Pickleheads) và club page (brand riêng từng club,
+ * `logoUrl`/`accentColor` = `logo_url`/`primary_color` đã có sẵn từ FE-13 — component này KHÔNG tự fetch gì
+ * thêm, chỉ nhận props hiển thị).
+ */
+export interface Props {
+  title: string;
+  href: string;
+  logoUrl?: string | null;
+  fallbackInitial?: string;
+  accentColor?: string | null;
+}
+
+const { title, href, logoUrl = null, fallbackInitial = 'P', accentColor = null } = Astro.props;
+---
+
+<nav class="pill-nav" data-reveal>
+  <a class="pill-nav__brand" href={href} style={accentColor ? `--pill-accent: ${accentColor}` : undefined}>
+    {
+      logoUrl ? (
+        <img src={logoUrl} alt="" class="pill-nav__logo" />
+      ) : (
+        <span class="pill-nav__logo pill-nav__logo--fallback" aria-hidden="true">
+          {fallbackInitial}
+        </span>
+      )
+    }
+    <span class="pill-nav__title">{title}</span>
+  </a>
+</nav>
+
+<style>
+  .pill-nav {
+    position: sticky;
+    top: var(--space-4);
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    padding: var(--space-4) var(--space-4) 0;
+  }
+  .pill-nav__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0.5rem 1.1rem 0.5rem 0.5rem;
+    background: var(--color-surface-200);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    box-shadow: var(--elevation-1);
+    text-decoration: none;
+    color: var(--color-ink);
+  }
+  .pill-nav__logo {
+    height: 28px;
+    width: 28px;
+    flex-shrink: 0;
+    border-radius: var(--radius-full);
+    object-fit: contain;
+  }
+  .pill-nav__logo--fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--pill-accent, var(--color-brand-primary));
+    color: #fff;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+  .pill-nav__title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+</style>
