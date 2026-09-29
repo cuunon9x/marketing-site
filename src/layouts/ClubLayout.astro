@@ -4,8 +4,8 @@ import '../styles/tokens.css';
 /**
  * Ticket FE-13 — header theo branding riêng của club (`logo_url`/`primary_color`, đã gate Pro/Premium ở
  * Backend — Ticket 41/B.4, trang này không tự quyết định lại). SEO: title/description động theo club,
- * OpenGraph image = `logo_url` khi có (club Free/chưa có branding thật thì bỏ qua `og:image`, KHÔNG tự chế
- * ảnh mặc định giả — không có asset OG mặc định nào được thiết kế cho ticket này).
+ * OpenGraph image = `logo_url` khi có; club Free/chưa có branding thật fallback về logo-mark chung thay vì bỏ
+ * hẳn tag (đổi ở Ticket FE-24 — xem `ogImageUrl` bên dưới).
  *
  * Ticket FE-14 — khung layout/typography theo Design System chung (`tokens.css`); `--club-accent` (branding
  * RIÊNG từng club, `primary_color`) tiếp tục override `--color-brand-primary` — đây là 2 khái niệm khác
@@ -31,6 +31,19 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 const canonicalUrl = new URL(`${base}clubs/${slug}/`, Astro.site).toString();
 // Ticket FE-14 — fallback ĐÚNG token `--color-brand-primary` (#1B6B52), KHÔNG còn hardcode `#1d4ed8` sai màu.
 const accentColor = primaryColor ?? 'var(--color-brand-primary)';
+// Ticket FE-24 — `og:image` không còn bỏ hẳn tag khi club chưa có `logo_url` riêng: fallback về logo-mark
+// chung (cùng file `favicon.svg`), phải là absolute URL theo đúng OG spec.
+const logoMarkUrl = new URL(`${base}favicon.svg`, Astro.site).toString();
+const ogImageUrl = logoUrl ?? logoMarkUrl;
+// schema.org SportsOrganization (Ticket FE-24) — `sport` là property có thật của type này, không phải suy diễn.
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SportsOrganization',
+  name,
+  url: canonicalUrl,
+  logo: ogImageUrl,
+  sport: sportType,
+};
 ---
 
 <!doctype html>
@@ -41,12 +54,18 @@ const accentColor = primaryColor ?? 'var(--color-brand-primary)';
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    <link rel="apple-touch-icon" href={`${base}favicon.svg`} />
 
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Pickleheads" />
+    <meta property="og:locale" content="vi_VN" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
-    {logoUrl && <meta property="og:image" content={logoUrl} />}
+    <meta property="og:image" content={ogImageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>
   <body style={`--club-accent: ${accentColor};`}>
     <header class="club-header">
@@ -69,22 +88,36 @@ const accentColor = primaryColor ?? 'var(--color-brand-primary)';
   .club-header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 1.25rem 1rem;
+    gap: 1rem;
+    padding: 2rem 1.5rem;
     background: var(--club-accent, var(--color-brand-primary));
     color: #fff;
   }
   .club-header h1 {
     margin: 0;
     font-family: var(--font-display);
-    font-size: 1.25rem;
+    font-size: 1.75rem;
   }
   .club-logo {
-    height: 40px;
-    width: 40px;
+    height: 64px;
+    width: 64px;
     object-fit: contain;
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     background: #fff;
+    box-shadow: var(--elevation-1);
+  }
+  @media (max-width: 480px) {
+    .club-header {
+      padding: 1.5rem 1rem;
+      gap: 0.75rem;
+    }
+    .club-header h1 {
+      font-size: 1.35rem;
+    }
+    .club-logo {
+      height: 48px;
+      width: 48px;
+    }
   }
   main {
     max-width: 960px;

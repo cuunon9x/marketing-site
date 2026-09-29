@@ -6,8 +6,14 @@ import { listAllPublicClubs } from '../lib/api.js';
  * ticket, nhưng cần thiết để có 1 trang gốc hợp lệ thay vì 404 mặc định của Astro, và giúp Googlebot có
  * điểm vào để discover mọi trang `/clubs/:slug` qua liên kết nội bộ, không chỉ qua sitemap.xml).
  * Ticket FE-14 — cùng token/font với `/clubs/:slug` (`tokens.css`), khung layout chung KHÔNG có branding
- * riêng club nào ở trang này (không phải trang của 1 club cụ thể). */
+ * riêng club nào ở trang này (không phải trang của 1 club cụ thể).
+ * Ticket FE-24 — card-grid (`radius-md`/`elevation-1`) thay `<ul>` trần, mỗi card thêm badge `sport_type` +
+ * `member_count`; empty state khi chưa có club public nào (trước đây render `<ul>` rỗng không rõ ràng). */
 const clubs = await listAllPublicClubs();
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+const canonicalUrl = new URL(base, Astro.site).toString();
+const title = 'Pickleheads — Bảng xếp hạng câu lạc bộ';
+const description = 'Danh sách câu lạc bộ pickleball/tennis/badminton/padel công khai trên Pickleheads.';
 ---
 
 <!doctype html>
@@ -15,20 +21,41 @@ const clubs = await listAllPublicClubs();
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pickleheads — Bảng xếp hạng câu lạc bộ</title>
-    <meta name="description" content="Danh sách câu lạc bộ pickleball/tennis/badminton/padel công khai trên Pickleheads." />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    <link rel="apple-touch-icon" href={`${base}favicon.svg`} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Pickleheads" />
+    <meta property="og:locale" content="vi_VN" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
     <h1 class="page-title">Câu lạc bộ trên Pickleheads</h1>
-    <ul>
-      {
-        clubs.map((club) => (
-          <li>
-            <a href={`clubs/${club.slug}/`}>{club.name}</a>
-          </li>
-        ))
-      }
-    </ul>
+    {
+      clubs.length === 0 ? (
+        <p class="empty-state">Chưa có câu lạc bộ công khai nào.</p>
+      ) : (
+        <ul class="club-grid">
+          {clubs.map((club) => (
+            <li class="club-card">
+              <a href={`clubs/${club.slug}/`}>
+                <span class="club-name">{club.name}</span>
+                <span class="club-meta">
+                  <span class="badge">{club.sport_type}</span>
+                  <span class="member-count">{club.member_count} thành viên</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
   </body>
 </html>
 
@@ -37,14 +64,64 @@ const clubs = await listAllPublicClubs();
     font-family: var(--font-body);
     color: var(--color-ink);
     background: var(--color-surface-100);
-    max-width: 640px;
+    max-width: 960px;
     margin: 2rem auto;
     padding: 0 1rem;
   }
   .page-title {
     font-family: var(--font-display);
   }
-  a {
-    color: var(--color-brand-primary);
+  .empty-state {
+    color: var(--color-ink-muted);
+  }
+  .club-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    list-style: none;
+    margin: 1.5rem 0 0;
+    padding: 0;
+  }
+  @media (min-width: 768px) {
+    .club-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (min-width: 1024px) {
+    .club-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .club-card {
+    background: var(--color-surface-200);
+    border-radius: var(--radius-md);
+    box-shadow: var(--elevation-1);
+  }
+  .club-card a {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem 1.25rem;
+    color: inherit;
+    text-decoration: none;
+  }
+  .club-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+  }
+  .club-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--color-ink-muted);
+  }
+  .badge {
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    background: var(--color-surface-300);
+    color: var(--color-ink);
+    font-weight: 600;
+    text-transform: capitalize;
   }
 </style>

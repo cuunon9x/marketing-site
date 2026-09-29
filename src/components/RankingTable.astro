@@ -1,45 +1,90 @@
 ---
-import '../styles/tokens.css';
 import type { PublicRankingItem } from '../lib/api.js';
 
 /**
  * Ticket FE-13 — component tĩnh (không TanStack Query, trang này không phải SPA — build-time render 1 lần).
  * Ticket FE-14 — bọc trong 1 card (`radius-md`/`elevation-1`, Design System) thay vì bảng trần không viền
  * ngoài; số liệu (`rank`/`current_rating`/`games_played`) bắt buộc `tabular-nums` (Data token — canh cột).
+ * Ticket FE-24 — avatar (`avatar_url`, fallback initials — theo đúng pattern `Avatar` ở apps/frontend); top-3
+ * hiện icon huy chương lucide (`Medal`, path copy nguyên văn từ `lucide-react`, KHÔNG dùng emoji — theo rule
+ * Design System đã chốt ở decisions-log.md "Icon UI = lucide-react, emoji CHỈ trong copy text thuần"); bảng
+ * scroll-x dưới breakpoint `md` (768px, frontend.md) thay vì vỡ layout trên màn hình hẹp.
  */
 export interface Props {
   items: PublicRankingItem[];
 }
 
 const { items } = Astro.props;
+
+const MEDAL_CLASS: Record<number, string> = { 1: 'medal-gold', 2: 'medal-silver', 3: 'medal-bronze' };
+
+function initialOf(displayName: string): string {
+  return displayName.trim().charAt(0).toUpperCase() || '?';
+}
 ---
 
 <div class="ranking-card">
-  <table class="ranking-table">
-    <thead>
-      <tr>
-        <th>Hạng</th>
-        <th>Người chơi</th>
-        <th>Điểm</th>
-        <th>Số trận</th>
-      </tr>
-    </thead>
-    <tbody>
-      {
-        items.map((item) => (
-          <tr>
-            <td class="num">{item.rank}</td>
-            <td>
-              {item.display_name}
-              {item.is_provisional && <span class="provisional">(provisional)</span>}
-            </td>
-            <td class="num">{item.current_rating.toFixed(2)}</td>
-            <td class="num">{item.games_played}</td>
-          </tr>
-        ))
-      }
-    </tbody>
-  </table>
+  <div class="ranking-scroll">
+    <table class="ranking-table">
+      <thead>
+        <tr>
+          <th>Hạng</th>
+          <th>Người chơi</th>
+          <th>Điểm</th>
+          <th>Số trận</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          items.map((item) => (
+            <tr>
+              <td class="num">
+                <span class="rank-cell">
+                  {MEDAL_CLASS[item.rank] && (
+                    <svg
+                      class={`medal-icon ${MEDAL_CLASS[item.rank]}`}
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15" />
+                      <path d="M11 12 5.12 2.2" />
+                      <path d="m13 12 5.88-9.8" />
+                      <path d="M8 7h8" />
+                      <circle cx="12" cy="17" r="5" />
+                      <path d="M12 18v-2h-.5" />
+                    </svg>
+                  )}
+                  {item.rank}
+                </span>
+              </td>
+              <td>
+                <span class="player-cell">
+                  {item.avatar_url ? (
+                    <img src={item.avatar_url} alt="" class="player-avatar" />
+                  ) : (
+                    <span class="player-avatar player-avatar--fallback" aria-hidden="true">
+                      {initialOf(item.display_name)}
+                    </span>
+                  )}
+                  <span>
+                    {item.display_name}
+                    {item.is_provisional && <span class="provisional">(provisional)</span>}
+                  </span>
+                </span>
+              </td>
+              <td class="num">{item.current_rating.toFixed(2)}</td>
+              <td class="num">{item.games_played}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <style>
@@ -48,6 +93,10 @@ const { items } = Astro.props;
     border-radius: var(--radius-md);
     box-shadow: var(--elevation-1);
     overflow: hidden;
+  }
+  .ranking-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
   .ranking-table {
     width: 100%;
@@ -71,9 +120,54 @@ const { items } = Astro.props;
   .num {
     font-variant-numeric: tabular-nums;
   }
+  .rank-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .medal-icon {
+    height: 18px;
+    width: 18px;
+    flex-shrink: 0;
+  }
+  .medal-gold {
+    color: #c9a227;
+  }
+  .medal-silver {
+    color: #9099a2;
+  }
+  .medal-bronze {
+    color: #b06a34;
+  }
+  .player-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .player-avatar {
+    height: 32px;
+    width: 32px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .player-avatar--fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-surface-300);
+    color: var(--color-ink);
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
   .provisional {
     margin-left: 0.35rem;
     font-size: 0.75rem;
     color: var(--color-warning);
+  }
+  @media (max-width: 767px) {
+    .ranking-table {
+      min-width: 480px;
+    }
   }
 </style>
