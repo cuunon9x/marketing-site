@@ -18,7 +18,7 @@ export interface PublicRankingItem {
   user_id: string;
   display_name: string;
   avatar_url: string | null;
-  current_rating: number;
+  current_rating: string; // numeric(4,2) ở pg trả về string (đã format sẵn 2 chữ số thập phân) — cùng convention apps/frontend, KHÔNG parse thành number/.toFixed() lại
   is_provisional: boolean;
   games_played: number;
 }
@@ -43,17 +43,22 @@ async function apiGet<T>(path: string): Promise<T> {
 }
 
 /**
- * `GET /clubs` (đã có sẵn, dùng cho luồng "club công khai" US-02/UC-03) — bổ sung `slug` vào response ở
- * Ticket BE-13/FE-13 (xem decisions-log.md) để đủ dữ liệu cho `getStaticPaths()`/sitemap.xml. Tự phân trang
- * qua hết `total` (endpoint giới hạn `limit` tối đa 100/trang, không có chế độ "lấy hết 1 lần" — xem
- * `pagination.dto.ts`).
+ * Ticket BE-43 (fix) — `GET /clubs` (`ClubsController`) có `@UseGuards(JwtAuthGuard)` class-level, nên SSG
+ * build (chạy không có bearer token) chưa từng thực sự thành công gọi route này — build trước đây "verified"
+ * bằng mock HTTP server không enforce auth nên không lộ ra. Đổi sang `public/marketing/clubs`
+ * (`PublicMarketingController`, KHÔNG guard, cùng data/filter `visibility=public, status=active` với
+ * `GET /clubs` — chỉ khác route). Response shape/phân trang giữ nguyên (bổ sung `slug` từ Ticket BE-13/FE-13
+ * để đủ dữ liệu cho `getStaticPaths()`/sitemap.xml). Tự phân trang qua hết `total` (endpoint giới hạn `limit`
+ * tối đa 100/trang, không có chế độ "lấy hết 1 lần" — xem `pagination.dto.ts`).
  */
 export async function listAllPublicClubs(): Promise<PublicClubListItem[]> {
   const limit = 100;
   let page = 1;
   const all: PublicClubListItem[] = [];
   for (;;) {
-    const result = await apiGet<{ items: PublicClubListItem[]; total: number }>(`/clubs?limit=${limit}&page=${page}`);
+    const result = await apiGet<{ items: PublicClubListItem[]; total: number }>(
+      `/public/marketing/clubs?limit=${limit}&page=${page}`,
+    );
     all.push(...result.items);
     if (result.items.length === 0 || all.length >= result.total) {
       break;
