@@ -16,6 +16,13 @@ import PillNav from '../components/PillNav.astro';
  * mục "Marketing surface — premium redesign"); mọi field/SEO ở trên (title/description/canonical/OG/JSON-LD)
  * giữ NGUYÊN, chỉ đổi phần render trong <body>. Href trỏ về homepage (`base`) để có đường quay lại danh sách
  * club — trước đây trang này không có link quay lại đâu cả.
+ *
+ * Ticket FE-29 — `og:image` fallback (club chưa có `logo_url` riêng) đổi từ `favicon.svg` sang
+ * `og-banner.png` (Design System, nhóm asset "Logos", v16 — logo-only, không wordmark/tagline; tải 1 lần vào
+ * repo, cùng pattern `logo-mark.svg` ở `apps/frontend`, KHÔNG fetch từ artifact lúc runtime). Ưu tiên vẫn
+ * GIỮ NGUYÊN: `logoUrl` thật của club (Pro/Premium) > `og-banner.png` — chỉ đổi fallback, không đổi thứ tự
+ * ưu tiên. `jsonLd.logo` KHÔNG đổi — vẫn dùng logo-mark thật (`favicon.svg`), vì banner có thêm hình tròn
+ * trang trí không phù hợp ngữ nghĩa `Organization.logo`.
  */
 export interface Props {
   name: string;
@@ -37,17 +44,19 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 const canonicalUrl = new URL(`${base}clubs/${slug}/`, Astro.site).toString();
 // Ticket FE-14 — fallback ĐÚNG token `--color-brand-primary` (#1B6B52), KHÔNG còn hardcode `#1d4ed8` sai màu.
 const accentColor = primaryColor ?? 'var(--color-brand-primary)';
-// Ticket FE-24 — `og:image` không còn bỏ hẳn tag khi club chưa có `logo_url` riêng: fallback về logo-mark
-// chung (cùng file `favicon.svg`), phải là absolute URL theo đúng OG spec.
+// Ticket FE-24 — `og:image` không còn bỏ hẳn tag khi club chưa có `logo_url` riêng. `logoMarkUrl` dùng cho
+// `jsonLd.logo` (favicon.svg — logo mark thật, không có hình trang trí). Ticket FE-29 — fallback riêng cho
+// `og:image` meta đổi sang `og-banner.png` (banner đúng tỉ lệ OG, không phải favicon vuông).
 const logoMarkUrl = new URL(`${base}favicon.svg`, Astro.site).toString();
-const ogImageUrl = logoUrl ?? logoMarkUrl;
+const ogBannerUrl = new URL(`${base}og-banner.png`, Astro.site).toString();
+const ogImageUrl = logoUrl ?? ogBannerUrl;
 // schema.org SportsOrganization (Ticket FE-24) — `sport` là property có thật của type này, không phải suy diễn.
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'SportsOrganization',
   name,
   url: canonicalUrl,
-  logo: ogImageUrl,
+  logo: logoUrl ?? logoMarkUrl,
   sport: sportType,
 };
 // Ticket FE-25 — fallback initial cho PillNav khi club chưa có `logo_url` riêng (cùng pattern initial-avatar

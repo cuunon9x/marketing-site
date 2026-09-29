@@ -1,0 +1,152 @@
+---
+/**
+ * Ticket FE-29 — form liên hệ thật thay CTA `mailto:` cũ (Ticket FE-25) ở Action section trang chủ. Field
+ * NGUYÊN VĂN theo `CreateMarketingLeadDto` (BE-42): club_name, contact_name, phone, email, message + honeypot
+ * `website`. Giữ nguyên ngôn ngữ visual pill/double-bezel của FE-25 (`.lead-shell`/`.lead-card` cùng cấu trúc
+ * `ranking-shell`/`ranking-card` ở RankingTable.astro, chỉ đổi bảng màu cho hợp Action section nền tối; nút
+ * submit tái dùng nguyên `.btn-pill--inverted` đã có ở tokens.css — không tạo hướng thiết kế mới).
+ *
+ * fetch() này chạy RUNTIME trong trình duyệt (khác `src/lib/api.ts` — chỉ chạy build-time/SSG) nên cần
+ * `PUBLIC_API_BASE_URL` (prefix `PUBLIC_` để Vite/Astro nhúng giá trị vào bundle JS phía client — biến
+ * `API_BASE_URL` hiện có KHÔNG dùng lại được vì cố tình không lộ ra bundle, xem comment `api.ts`).
+ */
+const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL ?? 'http://localhost:3000';
+---
+
+<div class="lead-shell">
+  <form class="lead-card" data-lead-form data-api-base={apiBaseUrl} novalidate>
+    <div class="lead-grid">
+      <label class="lead-field">
+        <span>Tên câu lạc bộ</span>
+        <input type="text" name="club_name" required maxlength="255" autocomplete="organization" />
+      </label>
+      <label class="lead-field">
+        <span>Người liên hệ</span>
+        <input type="text" name="contact_name" required maxlength="255" autocomplete="name" />
+      </label>
+      <label class="lead-field">
+        <span>Số điện thoại</span>
+        <input type="tel" name="phone" required maxlength="30" autocomplete="tel" />
+      </label>
+      <label class="lead-field">
+        <span>Email</span>
+        <input type="email" name="email" required maxlength="255" autocomplete="email" />
+      </label>
+    </div>
+
+    <label class="lead-field lead-field--full">
+      <span>Lời nhắn</span>
+      <textarea name="message" required maxlength="2000" rows="4"></textarea>
+    </label>
+
+    <!-- Honeypot — Ticket FE-29 mục 2: ẩn qua CSS off-screen (KHÔNG display:none/type=hidden, vẫn render
+         bình thường trong DOM nên bot đọc DOM thô vẫn thấy và điền) + aria-hidden/tabindex="-1" (người dùng
+         thật/screen reader không bao giờ chạm tới). Server (BE-42) tự bỏ qua request khi field này bị điền. -->
+    <label class="hp-field" aria-hidden="true">
+      Website
+      <input type="text" name="website" tabindex="-1" autocomplete="off" />
+    </label>
+
+    <div class="lead-actions">
+      <button type="submit" class="btn-pill btn-pill--inverted">
+        Gửi liên hệ
+        <span class="btn-pill__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+            <path d="M7 17 17 7" />
+            <path d="M7 7h10v10" />
+          </svg>
+        </span>
+      </button>
+      <p class="lead-status" role="status" aria-live="polite" data-lead-form-status data-state="idle"></p>
+    </div>
+  </form>
+</div>
+
+<script>
+  import { initLeadForm } from '../lib/lead-form';
+  initLeadForm();
+</script>
+
+<style>
+  .lead-shell {
+    margin-top: var(--space-8);
+    padding: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: var(--radius-lg);
+    text-align: left;
+  }
+  .lead-card {
+    position: relative;
+    background: var(--color-surface-200);
+    border-radius: calc(var(--radius-lg) - 6px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    padding: var(--space-6);
+  }
+  .lead-grid {
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 640px) {
+    .lead-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .lead-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    color: var(--color-ink);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .lead-field--full {
+    margin-top: var(--space-4);
+  }
+  .lead-field input,
+  .lead-field textarea {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    font-weight: 400;
+    padding: 0.65rem 0.9rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-200);
+    color: var(--color-ink);
+    resize: vertical;
+  }
+  .lead-field input:focus,
+  .lead-field textarea:focus {
+    outline: 2px solid var(--color-brand-primary);
+    outline-offset: 1px;
+  }
+  .hp-field {
+    position: absolute;
+    left: -9999px;
+    top: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+  .lead-actions {
+    margin-top: var(--space-6);
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+  }
+  .lead-status {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--color-ink-muted);
+  }
+  .lead-status[data-state='success'] {
+    color: var(--color-brand-primary);
+    font-weight: 600;
+  }
+  .lead-status[data-state='error'] {
+    color: var(--color-warning);
+    font-weight: 600;
+  }
+</style>
