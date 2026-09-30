@@ -44,6 +44,10 @@ jobs:
           # hình qua UI thay vì hard-code ở đây để đổi được không cần sửa code, cùng nguyên tắc rotate secret
           # ở security-checklist skill).
           API_BASE_URL: ${{ vars.API_BASE_URL }}
+          # Ticket FE-30 — biến riêng cho client-side bundle (LeadForm.astro, tiền tố PUBLIC_ được Astro/Vite
+          # inline lúc build). Cũng là repo Variable (không phải Secret) vì là URL public; giữ tách biệt với
+          # API_BASE_URL (chỉ dùng server/build-time trong src/lib/api.ts).
+          PUBLIC_API_BASE_URL: ${{ vars.PUBLIC_API_BASE_URL }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
