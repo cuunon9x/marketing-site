@@ -8,6 +8,13 @@
  */
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@800&family=Inter:wght@400;600;700&display=swap');
 
+/* Ticket FIX-1 (D3) — reset box-sizing toàn site (trước đó KHÔNG có ở đâu): thiếu nó thì `height: 100%` + padding (vd. .club-card a) cao hơn phần tử cha đúng bằng padding. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 :root {
   --color-surface-100: #f6f8f6;
   --color-surface-200: #ffffff;

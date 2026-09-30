@@ -36,13 +36,14 @@ const club = await getClubMarketingPage(slug!);
 <style>
   .content-grid {
     display: grid;
-    grid-template-columns: 1fr;
+    /* Ticket FIX-1 (D2) — minmax(0, 1fr) thay vì 1fr: track 1fr có min = min-content, nên bảng xếp hạng (min-width 480px) làm phình track thay vì tự cuộn trong .ranking-scroll. */
+    grid-template-columns: minmax(0, 1fr);
     gap: 1.5rem;
     margin-top: 1.5rem;
   }
   @media (min-width: 720px) {
     .content-grid {
-      grid-template-columns: 1fr 300px;
+      grid-template-columns: minmax(0, 1fr) 300px;
     }
   }
 </style>
